@@ -18,7 +18,7 @@ const AdminPanel = () => {
 
   const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
-  // --- NATIJALARNI OLISH (useEffect bilan avtomatlashtirildi) ---
+  // --- NATIJALARNI OLISH ---
   useEffect(() => {
     if (isAuth) {
       getStudentResults();
@@ -30,7 +30,6 @@ const AdminPanel = () => {
       const res = await fetch(`${BACKEND_URL}/api/admin/results`);
       if (!res.ok) throw new Error("Ma'lumot olinmadi");
       const data = await res.json();
-      // Faqat shu ustozga tegishli natijalarni filtrlash
       const filtered = data.filter(r => r.teacher === user);
       setResults(filtered);
     } catch (err) {
@@ -38,7 +37,7 @@ const AdminPanel = () => {
     }
   };
 
-  // --- NATIJANI O'CHIRISH (Qayta topshirishga ruxsat berish) ---
+  // --- NATIJANI O'CHIRISH ---
   const deleteResult = async (id) => {
     if (!window.confirm("Ushbu o'quvchi natijasini o'chirmoqchimisiz? Bu unga qayta topshirish imkonini beradi.")) return;
     try {
@@ -47,7 +46,7 @@ const AdminPanel = () => {
       });
       if (res.ok) {
         alert("Natija o'chirildi. O'quvchi endi qayta topshira oladi.");
-        getStudentResults(); // Jadvalni yangilash
+        getStudentResults(); 
       } else {
         alert("O'chirishda xato yuz berdi");
       }
@@ -176,7 +175,6 @@ const AdminPanel = () => {
 
       <hr />
 
-      {/* --- NATIJALAR JADVALI --- */}
       <div style={{marginTop:'40px'}}>
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
             <h3>📊 O'quvchilar Natijalari</h3>
@@ -193,5 +191,22 @@ const AdminPanel = () => {
             </tr>
           </thead>
           <tbody>
-            {results.length > 0 ? results.map((r) => (
-              <tr key={
+            {results.length > 0 ? results.map((r, index) => (
+              <tr key={index}>
+                <td style={{padding:'10px'}}>{r.name}</td>
+                <td>{r.studentId}</td>
+                <td style={{fontWeight:'bold'}}>{r.score}</td>
+                <td>{r.subject}</td>
+                <td>
+                  <button onClick={() => deleteResult(r._id)} style={{background:'#e74c3c', color:'white', border:'none', padding:'5px 10px', borderRadius:'3px', cursor:'pointer'}}>O'chirish</button>
+                </td>
+              </tr>
+            )) : <tr><td colSpan="5" style={{padding:'20px'}}>Hozircha natijalar yo'q</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default AdminPanel;
