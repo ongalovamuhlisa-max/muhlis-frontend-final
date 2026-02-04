@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 
 const AdminPanel = () => {
   const [results, setResults] = useState([]);
@@ -17,7 +17,6 @@ const AdminPanel = () => {
 
   const [newQ, setNewQ] = useState({ text: '', options: ['', '', '', ''], correct: 0 });
 
-  // --- 🔗 LINKNI TO'G'IRLADIK ---
   const BACKEND_URL = "https://muxlis-backend-final-3.onrender.com";
 
   // --- NATIJALARNI OLISH ---
@@ -89,6 +88,10 @@ const AdminPanel = () => {
     }
   };
 
+  // --- STYLES ---
+  const sInp = { display: 'block', width: '100%', padding: '10px', margin: '10px 0', borderRadius: '5px', border: '1px solid #ccc' };
+  const sBtn = { padding: '10px 20px', background: '#3498db', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' };
+
   if (!isAuth) {
     return (
       <div style={{textAlign:'center', padding:'100px', fontFamily:'Arial'}}>
@@ -139,3 +142,8 @@ const AdminPanel = () => {
         <p>Savollar soni: <b>{test.questions.length} ta</b></p>
         <button onClick={uploadTest} style={{...sBtn, background:'#3498db', width:'100%', padding:'15px'}}>🚀 TESTNI SAQLASH</button>
       </div>
+    </div>
+  );
+};
+
+export default AdminPanel;﻿
