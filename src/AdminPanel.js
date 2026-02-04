@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AdminPanel = () => {
   const [results, setResults] = useState([]);
@@ -16,27 +16,48 @@ const AdminPanel = () => {
 
   const [newQ, setNewQ] = useState({ text: '', options: ['', '', '', ''], correct: 0 });
 
-  // BACKEND URL
   const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
-  // --- NATIJALARNI OLISH ---
+  // --- NATIJALARNI OLISH (useEffect bilan avtomatlashtirildi) ---
+  useEffect(() => {
+    if (isAuth) {
+      getStudentResults();
+    }
+  }, [isAuth]);
+
   const getStudentResults = async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/results`);
-      if (!res.ok) throw new Error("Ma'muot olinmadi");
+      if (!res.ok) throw new Error("Ma'lumot olinmadi");
       const data = await res.json();
+      // Faqat shu ustozga tegishli natijalarni filtrlash
       const filtered = data.filter(r => r.teacher === user);
       setResults(filtered);
     } catch (err) {
       console.error(err);
-      alert("Natijalarni olishda xato!");
     }
   };
 
-  // --- LOGIN / REGISTER ---
+  // --- NATIJANI O'CHIRISH (Qayta topshirishga ruxsat berish) ---
+  const deleteResult = async (id) => {
+    if (!window.confirm("Ushbu o'quvchi natijasini o'chirmoqchimisiz? Bu unga qayta topshirish imkonini beradi.")) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/results/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        alert("Natija o'chirildi. O'quvchi endi qayta topshira oladi.");
+        getStudentResults(); // Jadvalni yangilash
+      } else {
+        alert("O'chirishda xato yuz berdi");
+      }
+    } catch (err) {
+      alert("Server bilan ulanishda xato");
+    }
+  };
+
   const handleAuth = async () => {
     if (!form.username || !form.password) return alert("Hamma maydonni to'ldiring!");
-    
     try {
       const path = mode === 'login' ? '/api/admin/login' : '/api/admin/register';
       const res = await fetch(`${BACKEND_URL}${path}`, {
@@ -48,9 +69,7 @@ const AdminPanel = () => {
             secretCode: form.secretCode
         })
       });
-
       const data = await res.json();
-
       if (res.ok) {
         if (mode === 'login') { 
           setIsAuth(true); 
@@ -63,12 +82,10 @@ const AdminPanel = () => {
         alert(data.message || "Xatolik yuz berdi!"); 
       }
     } catch (err) {
-      console.error(err);
       alert("Serverga ulanishda xato!");
     }
   };
 
-  // --- SAVOL QO'SHISH ---
   const addQuestion = () => {
     if (!newQ.text || newQ.options.some(opt => opt.trim() === "")) {
       return alert("Savol va hamma variantlarni to'ldiring!");
@@ -77,7 +94,6 @@ const AdminPanel = () => {
     setNewQ({ text: '', options: ['', '', '', ''], correct: 0 });
   };
 
-  // --- SERVERGA YUBORISH ---
   const uploadTest = async () => {
     if (test.questions.length === 0 || !test.subject) {
       return alert("Fan nomi va kamida bitta savol bo'lishi shart!");
@@ -94,7 +110,6 @@ const AdminPanel = () => {
           subjectName: test.subject 
         })
       });
-      
       if (res.ok) {
         alert("🚀 Imtihon muvaffaqiyatli saqlandi!");
       } else {
@@ -102,7 +117,6 @@ const AdminPanel = () => {
         alert("Xato: " + (errorData.error || "Saqlab bo'lmadi"));
       }
     } catch (err) {
-      console.error("Fetch error:", err);
       alert("Saqlashda texnik xato!");
     }
   };
@@ -126,28 +140,22 @@ const AdminPanel = () => {
   }
 
   return (
-    <div style={{padding:'20px', maxWidth:'700px', margin:'auto', fontFamily:'Arial'}}>
+    <div style={{padding:'20px', maxWidth:'800px', margin:'auto', fontFamily:'Arial'}}>
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'2px solid #3498db', marginBottom:'20px'}}>
         <h2>Ustoz: {user}</h2>
         <button onClick={() => window.location.reload()} style={{...sBtn, width:'auto', background:'#e74c3c'}}>CHIQISH</button>
       </div>
       
       <div style={{background:'#f8f9fa', padding:'15px', borderRadius:'10px', marginBottom:'20px'}}>
-        <h4>⚙️ Imtihon Sozlamalari</h4>
+        <h4>⚙️ Imtihon Sozmalari</h4>
         <input placeholder="Fan nomi" style={sInp} onChange={e => setTest({...test, subject: e.target.value})} />
         <div style={{display:'flex', gap:'20px'}}>
-          <div style={{flex:1}}>
-            <label>⏱ Taymer (minut):</label>
-            <input type="number" value={test.duration} style={sInp} onChange={e => setTest({...test, duration: e.target.value})} />
-          </div>
-          <div style={{flex:1}}>
-            <label>🔄 Urinishlar:</label>
-            <input type="number" value={test.attempts} style={sInp} onChange={e => setTest({...test, attempts: e.target.value})} />
-          </div>
+          <div style={{flex:1}}><label>⏱ Taymer (min):</label><input type="number" value={test.duration} style={sInp} onChange={e => setTest({...test, duration: e.target.value})} /></div>
+          <div style={{flex:1}}><label>🔄 Urinishlar:</label><input type="number" value={test.attempts} style={sInp} onChange={e => setTest({...test, attempts: e.target.value})} /></div>
         </div>
       </div>
 
-      <div style={{border:'1px solid #ddd', padding:'20px', borderRadius:'10px', background:'#fff'}}>
+      <div style={{border:'1px solid #ddd', padding:'20px', borderRadius:'10px', background:'#fff', marginBottom: '30px'}}>
         <h4>➕ Yangi Savol Qo'shish</h4>
         <input placeholder="Savol matni" value={newQ.text} style={sInp} onChange={e => setNewQ({...newQ, text: e.target.value})} />
         {newQ.options.map((opt, i) => (
@@ -161,12 +169,29 @@ const AdminPanel = () => {
         <button onClick={addQuestion} style={{...sBtn, background:'#28a745', marginTop:'10px'}}>SAVOLNI QO'SHISH</button>
       </div>
 
-      <div style={{marginTop:'20px', textAlign:'center', background: '#e9ecef', padding: '15px', borderRadius: '10px'}}>
+      <div style={{textAlign:'center', background: '#e9ecef', padding: '15px', borderRadius: '10px', marginBottom:'40px'}}>
         <p>Savollar soni: <b>{test.questions.length} ta</b></p>
         <button onClick={uploadTest} style={{...sBtn, background:'#3498db', padding:'15px', fontSize: '18px'}}>🚀 TESTNI SAQLASH</button>
       </div>
-    </div>
-  );
-};
 
-export default AdminPanel;
+      <hr />
+
+      {/* --- NATIJALAR JADVALI --- */}
+      <div style={{marginTop:'40px'}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+            <h3>📊 O'quvchilar Natijalari</h3>
+            <button onClick={getStudentResults} style={{...sBtn, width:'auto', background:'#9b59b6'}}>YANGILASH</button>
+        </div>
+        <table border="1" style={{width:'100%', marginTop:'10px', borderCollapse:'collapse', textAlign:'center'}}>
+          <thead style={{background:'#3498db', color:'white'}}>
+            <tr>
+              <th style={{padding:'10px'}}>O'quvchi</th>
+              <th>ID</th>
+              <th>Ball</th>
+              <th>Fan</th>
+              <th>Amal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.length > 0 ? results.map((r) => (
+              <tr key={
