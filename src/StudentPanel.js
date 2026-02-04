@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const StudentPanel = () => {
   const [subjects, setSubjects] = useState([]);
@@ -11,8 +11,8 @@ const StudentPanel = () => {
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
 
-  // --- ⚠️ DIQQAT: Render linkini to'g'ri yozamiz ---
-  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com/api/admin/setup";
+  // --- ASOSIY MANZIL (To'g'ri shakli) ---
+  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
   useEffect(() => {
     fetchSubjects();
@@ -21,6 +21,7 @@ const StudentPanel = () => {
   const fetchSubjects = async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/subjects`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setSubjects(data);
     } catch (err) {
@@ -73,18 +74,33 @@ const StudentPanel = () => {
     }
   };
 
-  if (finished) return <div style={containerStyle}><h2>Imtihon tugadi! Natijangiz: {score}/{test.questions.length}</h2></div>;
+  const containerStyle = { padding: '20px', maxWidth: '600px', margin: 'auto', fontFamily: 'Arial' };
+  const cardStyle = { background: '#f9f9f9', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #ddd' };
+  const inpStyle = { display: 'block', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' };
+  const btnStyle = { width: '100%', padding: '15px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' };
 
-  if (isStarted) {
+  if (finished) {
     return (
       <div style={containerStyle}>
-        <h2>{test.subjectName} imtihoni</h2>
+        <div style={{textAlign: 'center', background: '#fff', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'}}>
+          <h2 style={{color: '#27ae60'}}>✅ Imtihon tugadi!</h2>
+          <h3>Sizning natijangiz: {score} / {test.questions.length}</h3>
+          <button onClick={() => window.location.reload()} style={{...btnStyle, background: '#3498db', marginTop: '20px'}}>YANA TOPSHIRISH</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isStarted && test) {
+    return (
+      <div style={containerStyle}>
+        <h2 style={{borderBottom: '2px solid #27ae60', paddingBottom: '10px'}}>{test.subjectName} imtihoni</h2>
         {test.questions.map((q, i) => (
           <div key={i} style={cardStyle}>
             <p><b>{i + 1}. {q.text}</b></p>
             {q.options.map((opt, j) => (
-              <label key={j} style={{ display: 'block', margin: '5px 0' }}>
-                <input type="radio" name={`q${i}`} onChange={() => setAnswers({ ...answers, [i]: j })} /> {opt}
+              <label key={j} style={{ display: 'flex', alignItems: 'center', margin: '10px 0', cursor: 'pointer' }}>
+                <input type="radio" name={`q${i}`} style={{marginRight: '10px'}} onChange={() => setAnswers({ ...answers, [i]: j })} /> {opt}
               </label>
             ))}
           </div>
@@ -96,23 +112,19 @@ const StudentPanel = () => {
 
   return (
     <div style={containerStyle}>
-      <h2>📝 Imtihon Topshirish</h2>
-      <input placeholder="Ism Familiya" style={inpStyle} onChange={e => setStudentName(e.target.value)} />
-      <input placeholder="ID / Guruh" style={inpStyle} onChange={e => setStudentId(e.target.value)} />
-      <select style={inpStyle} onChange={e => setSelectedTeacher(e.target.value)}>
-        <option value="">Ustozni tanlang</option>
-        {subjects.map((t, i) => <option key={i} value={t}>{t}</option>)}
-      </select>
-      <button onClick={startTest} style={btnStyle}>IMTIHONNI BOSHLASH</button>
+      <div style={{background: '#fff', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'}}>
+        <h2 style={{textAlign: 'center', color: '#2c3e50'}}>📝 Imtihon Topshirish</h2>
+        <p style={{textAlign: 'center', color: '#7f8c8d'}}>Ma'lumotlaringizni kiriting</p>
+        <input placeholder="Ism Familiya" style={inpStyle} onChange={e => setStudentName(e.target.value)} />
+        <input placeholder="ID / Guruh" style={inpStyle} onChange={e => setStudentId(e.target.value)} />
+        <select style={inpStyle} onChange={e => setSelectedTeacher(e.target.value)}>
+          <option value="">Ustozni tanlang</option>
+          {subjects.map((t, i) => <option key={i} value={t}>{t}</option>)}
+        </select>
+        <button onClick={startTest} style={btnStyle}>IMTIHONNI BOSHLASH</button>
+      </div>
     </div>
   );
 };
 
-const containerStyle = { padding: '50px', maxWidth: '600px', margin: 'auto', fontFamily: 'Arial' };
-const cardStyle = { background: '#f9f9f9', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #ddd' };
-const inpStyle = { display: 'block', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' };
-const btnStyle = { width: '100%', padding: '15px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' };
-
-
 export default StudentPanel;
-
