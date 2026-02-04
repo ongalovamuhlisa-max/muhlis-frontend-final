@@ -12,7 +12,7 @@ const StudentPanel = () => {
   const [score, setScore] = useState(0);
 
   // --- ⚠️ DIQQAT: Render linkini to'g'ri yozamiz ---
-  const BACKEND_URL = "https://muxlis-backend-final-3.onrender.com";
+  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
   useEffect(() => {
     fetchSubjects();
@@ -112,5 +112,6 @@ const containerStyle = { padding: '50px', maxWidth: '600px', margin: 'auto', fon
 const cardStyle = { background: '#f9f9f9', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #ddd' };
 const inpStyle = { display: 'block', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' };
 const btnStyle = { width: '100%', padding: '15px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' };
+
 
 export default StudentPanel;
