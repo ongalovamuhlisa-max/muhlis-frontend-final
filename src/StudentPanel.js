@@ -12,7 +12,7 @@ const StudentPanel = () => {
   const [score, setScore] = useState(0);
 
   // --- ⚠️ DIQQAT: Render linkini to'g'ri yozamiz ---
-  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
+  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com/api/admin/setup";
 
   useEffect(() => {
     fetchSubjects();
@@ -115,3 +115,4 @@ const btnStyle = { width: '100%', padding: '15px', background: '#27ae60', color:
 
 
 export default StudentPanel;
+
