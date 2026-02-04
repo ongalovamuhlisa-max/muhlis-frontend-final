@@ -17,7 +17,7 @@ const AdminPanel = () => {
   const [newQ, setNewQ] = useState({ text: '', options: ['', '', '', ''], correct: 0 });
 
   // BACKEND URL (Oxirida / yo'qligiga e'tibor bering)
-  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
+  const BACKEND_URL = https://muxlis-backend-final-8.onrender.com/api/admin/setup"";
 
   // --- NATIJALARNI OLISH ---
   const getStudentResults = async () => {
@@ -171,4 +171,5 @@ const AdminPanel = () => {
 };
 
 export default AdminPanel;﻿
+
 
