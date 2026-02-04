@@ -16,8 +16,8 @@ const AdminPanel = () => {
 
   const [newQ, setNewQ] = useState({ text: '', options: ['', '', '', ''], correct: 0 });
 
-  // BACKEND URL (Oxirida / yo'qligiga e'tibor bering)
-  const BACKEND_URL = https://muxlis-backend-final-8.onrender.com/api/admin/setup"";
+  // BACKEND URL - Faqat asosiy manzil
+  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
   // --- NATIJALARNI OLISH ---
   const getStudentResults = async () => {
@@ -134,42 +134,6 @@ const AdminPanel = () => {
       </div>
       
       <div style={{background:'#f8f9fa', padding:'15px', borderRadius:'10px', marginBottom:'20px'}}>
-        <h4>⚙️ Imtihon Sozlamalari</h4>
-        <input placeholder="Fan nomi (Masalan: Matematika)" style={sInp} onChange={e => setTest({...test, subject: e.target.value})} />
-        <div style={{display:'flex', gap:'20px'}}>
-          <div style={{flex:1}}>
-            <label>⏱ Taymer (minut):</label>
-            <input type="number" value={test.duration} style={sInp} onChange={e => setTest({...test, duration: e.target.value})} />
-          </div>
-          <div style={{flex:1}}>
-            <label>🔄 Urinishlar:</label>
-            <input type="number" value={test.attempts} style={sInp} onChange={e => setTest({...test, attempts: e.target.value})} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{border:'1px solid #ddd', padding:'20px', borderRadius:'10px', background:'#fff'}}>
-        <h4>➕ Yangi Savol Qo'shish</h4>
-        <input placeholder="Savol matni" value={newQ.text} style={sInp} onChange={e => setNewQ({...newQ, text: e.target.value})} />
-        {newQ.options.map((opt, i) => (
-          <div key={i} style={{display:'flex', alignItems:'center', marginBottom:'5px'}}>
-            <input type="radio" name="correct" checked={newQ.correct === i} onChange={() => setNewQ({...newQ, correct: i})} />
-            <input placeholder={`Variant ${i+1}`} value={opt} style={{...sInp, marginLeft:'10px', flex:1}} onChange={e => {
-              let ops = [...newQ.options]; ops[i] = e.target.value; setNewQ({...newQ, options: ops});
-            }} />
-          </div>
-        ))}
-        <button onClick={addQuestion} style={{...sBtn, background:'#28a745', marginTop:'10px'}}>SAVOLNI RO'YXATGA QO'SHISH</button>
-      </div>
-
-      <div style={{marginTop:'20px', textAlign:'center', background: '#e9ecef', padding: '15px', borderRadius: '10px'}}>
-        <p>Hozircha savollar: <b>{test.questions.length} ta</b></p>
-        <button onClick={uploadTest} style={{...sBtn, background:'#3498db', padding:'15px', fontSize: '18px'}}>🚀 TESTNI SERVERGA SAQLASH</button>
-      </div>
-    </div>
-  );
-};
-
-export default AdminPanel;﻿
+        <h4>⚙️ Imtih
 
 
