@@ -18,67 +18,53 @@ const AdminPanel = () => {
 
   const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
-  // --- NATIJALARNI OLISH ---
-  useEffect(() => {
-    if (isAuth) {
-      getStudentResults();
-    }
-  }, [isAuth]);
+  // --- TELEGRAM SO'ROV FUNKSIYASI ---
+  const requestSecretCode = () => {
+    const name = prompt("Ism va familiyangizni kiriting:");
+    const phone = prompt("Bog'lanish uchun telefon raqamingiz:");
+    
+    if (name && phone) {
+      const botToken = "SIZNING_BOT_TOKENINGIZ"; // @BotFather'dan olingan token
+      const chatId = "SIZNING_CHAT_IDINGIZ"; // @userinfobot'dan olingan ID
+      const message = `🚀 YANGI SO'ROV:\n👤 Ustoz: ${name}\n📞 Tel: ${phone}\n🔑 Maxfiy kod (MAKTAB2026) so'ralmoqda!`;
 
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
+        .then(() => alert("So'rovingiz adminga yuborildi! Tez orada sizga xabar beramiz."))
+        .catch(() => alert("Xatolik! Keyinroq urinib ko'ring."));
+    }
+  };
+
+  // --- NATIJALARNI OLISH ---
   const getStudentResults = async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/results`);
-      if (!res.ok) throw new Error("Ma'lumot olinmadi");
       const data = await res.json();
       const filtered = data.filter(r => r.teacher === user);
       setResults(filtered);
     } catch (err) {
-      console.error(err);
+      alert("Natijalarni olishda xato!");
     }
   };
 
-  // --- NATIJANI O'CHIRISH ---
-  const deleteResult = async (id) => {
-    if (!window.confirm("Ushbu o'quvchi natijasini o'chirmoqchimisiz? Bu unga qayta topshirish imkonini beradi.")) return;
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/results/${id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        alert("Natija o'chirildi. O'quvchi endi qayta topshira oladi.");
-        getStudentResults(); 
-      } else {
-        alert("O'chirishda xato yuz berdi");
-      }
-    } catch (err) {
-      alert("Server bilan ulanishda xato");
-    }
-  };
-
+  // --- LOGIN / REGISTER ---
   const handleAuth = async () => {
-    if (!form.username || !form.password) return alert("Hamma maydonni to'ldiring!");
     try {
       const path = mode === 'login' ? '/api/admin/login' : '/api/admin/register';
       const res = await fetch(`${BACKEND_URL}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            username: form.username.trim(),
-            password: form.password.trim(),
-            secretCode: form.secretCode
-        })
+        body: JSON.stringify(form)
       });
-      const data = await res.json();
       if (res.ok) {
         if (mode === 'login') { 
           setIsAuth(true); 
-          setUser(form.username.trim()); 
+          setUser(form.username); 
         } else { 
-          alert("Muvaffaqiyatli ro'yxatdan o'tdingiz!"); 
+          alert("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi kirish qiling."); 
           setMode('login'); 
         }
       } else { 
-        alert(data.message || "Xatolik yuz berdi!"); 
+        alert("Xatolik! Ma'lumotlar noto'g'ri."); 
       }
     } catch (err) {
       alert("Serverga ulanishda xato!");
@@ -86,7 +72,7 @@ const AdminPanel = () => {
   };
 
   const addQuestion = () => {
-    if (!newQ.text || newQ.options.some(opt => opt.trim() === "")) {
+    if (!newQ.text || newQ.options.some(opt => opt === "")) {
       return alert("Savol va hamma variantlarni to'ldiring!");
     }
     setTest({...test, questions: [...test.questions, newQ]});
@@ -109,14 +95,9 @@ const AdminPanel = () => {
           subjectName: test.subject 
         })
       });
-      if (res.ok) {
-        alert("🚀 Imtihon muvaffaqiyatli saqlandi!");
-      } else {
-        const errorData = await res.json();
-        alert("Xato: " + (errorData.error || "Saqlab bo'lmadi"));
-      }
+      if (res.ok) alert("🚀 Imtihon muvaffaqiyatli saqlandi!");
     } catch (err) {
-      alert("Saqlashda texnik xato!");
+      alert("Saqlashda xato!");
     }
   };
 
@@ -130,23 +111,27 @@ const AdminPanel = () => {
         <input placeholder="Login" style={sInp} onChange={e => setForm({...form, username: e.target.value})} />
         <input type="password" placeholder="Parol" style={sInp} onChange={e => setForm({...form, password: e.target.value})} />
         {mode === 'register' && <input placeholder="Maxfiy kod" style={sInp} onChange={e => setForm({...form, secretCode: e.target.value})} />}
-        <button onClick={handleAuth} style={sBtn}>{mode === 'login' ? 'KIRISH' : 'RO\'YXATDAN O\'TISH'}</button>
+        <button onClick={handleAuth} style={sBtn}>{mode === 'login' ? 'KIRISH' : 'RO\'YXATDAN O'TISH'}</button>
+        
+        {/* SO'ROV TUGMASI */}
+        <button onClick={requestSecretCode} style={{...sBtn, background:'#f39c12', marginTop:'10px'}}>🔑 KOD OLISH UCHUN SO'ROV</button>
+        
         <p onClick={() => setMode(mode === 'login' ? 'register' : 'login')} style={{cursor:'pointer', color:'blue', marginTop:'15px'}}>
-          {mode === 'login' ? "Hisobingiz yo'qmi? Ro'yxatdan o'ting" : "Hisobingiz bormi? Kirish"}
+          {mode === 'login' ? "Hisobingiz yo'qmi? Ro'yxatdan o'ting" : "Hisob bormi? Kirish"}
         </p>
       </div>
     );
   }
 
   return (
-    <div style={{padding:'20px', maxWidth:'800px', margin:'auto', fontFamily:'Arial'}}>
+    <div style={{padding:'20px', maxWidth:'700px', margin:'auto', fontFamily:'Arial'}}>
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'2px solid #3498db', marginBottom:'20px'}}>
         <h2>Ustoz: {user}</h2>
         <button onClick={() => window.location.reload()} style={{...sBtn, width:'auto', background:'#e74c3c'}}>CHIQISH</button>
       </div>
       
       <div style={{background:'#f8f9fa', padding:'15px', borderRadius:'10px', marginBottom:'20px'}}>
-        <h4>⚙️ Imtihon Sozmalari</h4>
+        <h4>⚙️ Imtihon Sozlamalari</h4>
         <input placeholder="Fan nomi" style={sInp} onChange={e => setTest({...test, subject: e.target.value})} />
         <div style={{display:'flex', gap:'20px'}}>
           <div style={{flex:1}}><label>⏱ Taymer (min):</label><input type="number" value={test.duration} style={sInp} onChange={e => setTest({...test, duration: e.target.value})} /></div>
@@ -154,12 +139,12 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      <div style={{border:'1px solid #ddd', padding:'20px', borderRadius:'10px', background:'#fff', marginBottom: '30px'}}>
+      <div style={{border:'1px solid #ddd', padding:'20px', borderRadius:'10px', background:'#fff'}}>
         <h4>➕ Yangi Savol Qo'shish</h4>
         <input placeholder="Savol matni" value={newQ.text} style={sInp} onChange={e => setNewQ({...newQ, text: e.target.value})} />
         {newQ.options.map((opt, i) => (
           <div key={i} style={{display:'flex', alignItems:'center', marginBottom:'5px'}}>
-            <input type="radio" name="correct" checked={newQ.correct === i} onChange={() => setNewQ({...newQ, correct: i})} />
+            <input type="radio" checked={newQ.correct === i} onChange={() => setNewQ({...newQ, correct: i})} />
             <input placeholder={`Variant ${i+1}`} value={opt} style={{...sInp, marginLeft:'10px', flex:1}} onChange={e => {
               let ops = [...newQ.options]; ops[i] = e.target.value; setNewQ({...newQ, options: ops});
             }} />
@@ -168,42 +153,21 @@ const AdminPanel = () => {
         <button onClick={addQuestion} style={{...sBtn, background:'#28a745', marginTop:'10px'}}>SAVOLNI QO'SHISH</button>
       </div>
 
-      <div style={{textAlign:'center', background: '#e9ecef', padding: '15px', borderRadius: '10px', marginBottom:'40px'}}>
+      <div style={{marginTop:'20px', textAlign:'center'}}>
         <p>Savollar soni: <b>{test.questions.length} ta</b></p>
-        <button onClick={uploadTest} style={{...sBtn, background:'#3498db', padding:'15px', fontSize: '18px'}}>🚀 TESTNI SAQLASH</button>
+        <button onClick={uploadTest} style={{...sBtn, background:'#3498db', padding:'15px'}}>🚀 TESTNI SAQLASH</button>
       </div>
-
-      <hr />
-
-      <div style={{marginTop:'40px'}}>
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-            <h3>📊 O'quvchilar Natijalari</h3>
-            <button onClick={getStudentResults} style={{...sBtn, width:'auto', background:'#9b59b6'}}>YANGILASH</button>
-        </div>
-        <table border="1" style={{width:'100%', marginTop:'10px', borderCollapse:'collapse', textAlign:'center'}}>
-          <thead style={{background:'#3498db', color:'white'}}>
-            <tr>
-              <th style={{padding:'10px'}}>O'quvchi</th>
-              <th>ID</th>
-              <th>Ball</th>
-              <th>Fan</th>
-              <th>Amal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.length > 0 ? results.map((r, index) => (
-              <tr key={index}>
-                <td style={{padding:'10px'}}>{r.name}</td>
-                <td>{r.studentId}</td>
-                <td style={{fontWeight:'bold'}}>{r.score}</td>
-                <td>{r.subject}</td>
-                <td>
-                  <button onClick={() => deleteResult(r._id)} style={{background:'#e74c3c', color:'white', border:'none', padding:'5px 10px', borderRadius:'3px', cursor:'pointer'}}>O'chirish</button>
-                </td>
-              </tr>
-            )) : <tr><td colSpan="5" style={{padding:'20px'}}>Hozircha natijalar yo'q</td></tr>}
-          </tbody>
-        </table>
+      
+      <div style={{marginTop:'30px', borderTop:'1px solid #eee', paddingTop:'20px'}}>
+         <button onClick={getStudentResults} style={{...sBtn, background:'#9b59b6', width:'auto'}}>📊 NATIJALARNI KO'RISH</button>
+         {results.length > 0 && (
+           <table style={{width:'100%', marginTop:'15px', borderCollapse:'collapse'}} border="1">
+             <thead><tr style={{background:'#eee'}}><th>O'quvchi</th><th>Ball</th></tr></thead>
+             <tbody>
+               {results.map((r, i) => <tr key={i}><td>{r.name}</td><td>{r.score}</td></tr>)}
+             </tbody>
+           </table>
+         )}
       </div>
     </div>
   );
