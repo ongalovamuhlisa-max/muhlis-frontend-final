@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const AdminPanel = () => {
   const [results, setResults] = useState([]);
@@ -18,37 +18,23 @@ const AdminPanel = () => {
 
   const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
-  // --- 🔔 TELEGRAM SO'ROV TIZIMI ---
+  // --- 🔔 TELEGRAM SO'ROV (FAQAT TUGMA BOSILGANDA) ---
   const requestSecretCode = () => {
     const name = prompt("Ism va familiyangizni kiriting:");
-    const phone = prompt("Siz bilan bog'lanish uchun telefon raqami:");
+    const phone = prompt("Telefon raqamingiz:");
     
     if (name && phone) {
-      // ✅ SIZNING TOKENINGIZ VA ID RAQAMINGIZ JOYLANDI
       const botToken = "8334455010:AAEmM9zYsPzqxEPgG08wzqEMD0tneVIgWXA"; 
       const chatId = "6851300425"; 
-      
-      const message = `🚀 YANGI SO'ROV:\n👤 Ustoz: ${name}\n📞 Tel: ${phone}\n🔑 Kod (MAKTAB2026) so'ralmoqda!`;
+      const message = `🚀 YANGI SO'ROV:\n👤 Ustoz: ${name}\n📞 Tel: ${phone}\n🔑 Kod so'ralmoqda!`;
 
       fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
-        .then(() => alert("So'rov yuborildi! Tez orada sizga xabar beramiz."))
-        .catch(() => alert("Xatolik! Botga /start bosganingizga ishonch hosil qiling."));
+        .then(() => alert("So'rov yuborildi! ✅"))
+        .catch(() => alert("Xatolik yuz berdi."));
     }
   };
 
-  // --- NATIJALAR ---
-  const getStudentResults = async () => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/results`);
-      const data = await res.json();
-      const filtered = data.filter(r => r.teacher === user);
-      setResults(filtered);
-    } catch (err) {
-      console.log("Natijalarda xato");
-    }
-  };
-
-  // --- AUTH ---
+  // --- QALAN QISMLAR (LOGIN VA TEST YARATISH) ---
   const handleAuth = async () => {
     try {
       const path = mode === 'login' ? '/api/admin/login' : '/api/admin/register';
@@ -58,19 +44,10 @@ const AdminPanel = () => {
         body: JSON.stringify(form)
       });
       if (res.ok) {
-        if (mode === 'login') { 
-          setIsAuth(true); 
-          setUser(form.username); 
-        } else { 
-          alert("Muvaffaqiyatli! Endi login qiling."); 
-          setMode('login'); 
-        }
-      } else { 
-        alert("Xatolik! Ma'lumotlar noto'g'ri."); 
-      }
-    } catch (err) {
-      alert("Server bilan aloqa yo'q.");
-    }
+        if (mode === 'login') { setIsAuth(true); setUser(form.username); }
+        else { alert("Muvaffaqiyatli! Endi login qiling."); setMode('login'); }
+      } else { alert("Ma'lumotlar xato!"); }
+    } catch (err) { alert("Server bilan aloqa yo'q."); }
   };
 
   const addQuestion = () => {
@@ -96,6 +73,7 @@ const AdminPanel = () => {
     } catch (err) { alert("Xato!"); }
   };
 
+  // --- DIZAYN (STYLE) ---
   const sInp = { display: 'block', width: '100%', padding: '10px', margin: '10px 0', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' };
   const sBtn = { padding: '10px 20px', background: '#3498db', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%' };
 
@@ -107,9 +85,7 @@ const AdminPanel = () => {
         <input type="password" placeholder="Parol" style={sInp} onChange={e => setForm({...form, password: e.target.value})} />
         {mode === 'register' && <input placeholder="Maxfiy kod" style={sInp} onChange={e => setForm({...form, secretCode: e.target.value})} />}
         <button onClick={handleAuth} style={sBtn}>{mode === 'login' ? 'KIRISH' : 'SAQLASH'}</button>
-        
         <button onClick={requestSecretCode} style={{...sBtn, background:'#f39c12', marginTop:'10px'}}>🔑 KOD OLISH UCHUN SO'ROV</button>
-        
         <p onClick={() => setMode(mode === 'login' ? 'register' : 'login')} style={{cursor:'pointer', color:'blue', marginTop:'15px'}}>
           {mode === 'login' ? "Hisob ochish" : "Kirish"}
         </p>
@@ -123,44 +99,10 @@ const AdminPanel = () => {
         <h2>Ustoz: {user}</h2>
         <button onClick={() => window.location.reload()} style={{...sBtn, width:'auto', background:'#e74c3c'}}>CHIQISH</button>
       </div>
-
-      <div style={{background:'#f8f9fa', padding:'15px', borderRadius:'10px', marginBottom:'20px'}}>
-        <input placeholder="Fan nomi" style={sInp} onChange={e => setTest({...test, subject: e.target.value})} />
-        <div style={{display:'flex', gap:'10px'}}>
-          <input type="number" placeholder="Vaqt" style={sInp} onChange={e => setTest({...test, duration: e.target.value})} />
-          <input type="number" placeholder="Urinishlar" style={sInp} onChange={e => setTest({...test, attempts: e.target.value})} />
-        </div>
-      </div>
-
-      <div style={{border:'1px solid #ddd', padding:'15px', borderRadius:'10px'}}>
-        <input placeholder="Savol" value={newQ.text} style={sInp} onChange={e => setNewQ({...newQ, text: e.target.value})} />
-        {newQ.options.map((opt, i) => (
-          <div key={i} style={{display:'flex', marginBottom:'5px'}}>
-            <input type="radio" checked={newQ.correct === i} onChange={() => setNewQ({...newQ, correct: i})} />
-            <input placeholder={`Variant ${i+1}`} value={opt} style={{...sInp, marginLeft:'5px'}} onChange={e => {
-              let ops = [...newQ.options]; ops[i] = e.target.value; setNewQ({...newQ, options: ops});
-            }} />
-          </div>
-        ))}
-        <button onClick={addQuestion} style={{...sBtn, background:'#28a745'}}>+ SAVOL</button>
-      </div>
-
-      <button onClick={uploadTest} style={{...sBtn, marginTop:'20px', padding:'15px'}}>🚀 TESTNI SAQLASH ({test.questions.length})</button>
-      
-      <div style={{marginTop:'30px'}}>
-         <button onClick={getStudentResults} style={{...sBtn, background:'#9b59b6'}}>📊 NATIJALAR</button>
-         {results.length > 0 && (
-           <table style={{width:'100%', marginTop:'10px'}} border="1">
-             <thead><tr><th>O'quvchi</th><th>Ball</th></tr></thead>
-             <tbody>
-               {results.map((r, i) => <tr key={i}><td>{r.name}</td><td>{r.score}</td></tr>)}
-             </tbody>
-           </table>
-         )}
-      </div>
+      <button onClick={uploadTest} style={sBtn}>🚀 TESTNI SAQLASH ({test.questions.length})</button>
     </div>
   );
 };
 
 export default AdminPanel;
- 
+
