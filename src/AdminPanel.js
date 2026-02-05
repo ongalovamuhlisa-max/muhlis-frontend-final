@@ -18,20 +18,21 @@ const AdminPanel = () => {
 
   const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
-  // --- TELEGRAM SO'ROV ---
+  // --- 🔔 TELEGRAM SO'ROV TIZIMI ---
   const requestSecretCode = () => {
-    const name = prompt("Ismingizni kiriting:");
-    const phone = prompt("Telefon raqamingiz:");
+    const name = prompt("Ism va familiyangizni kiriting:");
+    const phone = prompt("Siz bilan bog'lanish uchun telefon raqami:");
     
     if (name && phone) {
-      // O'zingizning TOKEN va ID raqamingizni yozing
-      const botToken = "74839...:AAH_..."; 
-      const chatId = "123456789"; 
-      const message = `🚀 SO'ROV:\n👤 Ustoz: ${name}\n📞 Tel: ${phone}\n🔑 Kod so'ralmoqda!`;
+      // ✅ SIZNING TOKENINGIZ VA ID RAQAMINGIZ JOYLANDI
+      const botToken = "8334455010:AAEmM9zYsPzqxEPgG08wzqEMD0tneVIgWXA"; 
+      const chatId = "6851300425"; 
+      
+      const message = `🚀 YANGI SO'ROV:\n👤 Ustoz: ${name}\n📞 Tel: ${phone}\n🔑 Kod (MAKTAB2026) so'ralmoqda!`;
 
       fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
-        .then(() => alert("So'rov yuborildi!"))
-        .catch(() => alert("Xatolik bo'ldi."));
+        .then(() => alert("So'rov yuborildi! Tez orada sizga xabar beramiz."))
+        .catch(() => alert("Xatolik! Botga /start bosganingizga ishonch hosil qiling."));
     }
   };
 
@@ -61,11 +62,11 @@ const AdminPanel = () => {
           setIsAuth(true); 
           setUser(form.username); 
         } else { 
-          alert("Muvaffaqiyatli! Endi kirish qiling."); 
+          alert("Muvaffaqiyatli! Endi login qiling."); 
           setMode('login'); 
         }
       } else { 
-        alert("Xatolik! Ma'lumotlarni tekshiring."); 
+        alert("Xatolik! Ma'lumotlar noto'g'ri."); 
       }
     } catch (err) {
       alert("Server bilan aloqa yo'q.");
@@ -100,14 +101,14 @@ const AdminPanel = () => {
 
   if (!isAuth) {
     return (
-      <div style={{textAlign:'center', padding:'50px 20px', maxWidth:'400px', margin:'auto'}}>
-        <h2>{mode === 'login' ? '🔐 Kirish' : '📝 Ro\'yxatdan o\'tish'}</h2>
+      <div style={{textAlign:'center', padding:'50px 20px', maxWidth:'400px', margin:'auto', fontFamily: 'Arial'}}>
+        <h2>{mode === 'login' ? '🔐 Ustozlar Kirishi' : '📝 Ro\'yxatdan o\'tish'}</h2>
         <input placeholder="Login" style={sInp} onChange={e => setForm({...form, username: e.target.value})} />
         <input type="password" placeholder="Parol" style={sInp} onChange={e => setForm({...form, password: e.target.value})} />
         {mode === 'register' && <input placeholder="Maxfiy kod" style={sInp} onChange={e => setForm({...form, secretCode: e.target.value})} />}
-        <button onClick={handleAuth} style={sBtn}>{mode === 'login' ? 'KIRISH' : 'RO\'YXATDAN O\'TISH'}</button>
+        <button onClick={handleAuth} style={sBtn}>{mode === 'login' ? 'KIRISH' : 'SAQLASH'}</button>
         
-        <button onClick={requestSecretCode} style={{...sBtn, background:'#f39c12', marginTop:'10px'}}>🔑 KOD SO'RASH</button>
+        <button onClick={requestSecretCode} style={{...sBtn, background:'#f39c12', marginTop:'10px'}}>🔑 KOD OLISH UCHUN SO'ROV</button>
         
         <p onClick={() => setMode(mode === 'login' ? 'register' : 'login')} style={{cursor:'pointer', color:'blue', marginTop:'15px'}}>
           {mode === 'login' ? "Hisob ochish" : "Kirish"}
@@ -162,3 +163,4 @@ const AdminPanel = () => {
 };
 
 export default AdminPanel;
+ 
