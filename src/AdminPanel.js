@@ -1,349 +1,251 @@
 import React, { useState, useEffect } from 'react';
 
-const StudentPanel = () => {
-  const [subjects, setSubjects] = useState([]);
-  const [selectedTeacher, setSelectedTeacher] = 
+const AdminPanel = () => {
+  const [results, setResults] = useState([]);
+  const [myTests, setMyTests] = useState([]); 
+  const [isAuth, setIsAuth] = useState(false);
+  const [user, setUser] = useState("");
+  const [mode, setMode] = useState('login');
+  const [form, setForm] = useState({ username: '', password: '', secretCode: '' });
 
-useState("");
-  const [test, setTest] = useState(null);
-  const [studentName, setStudentName] = useState
+  const [test, setTest] = useState({ 
+    subject: '', duration: 30, attempts: 1, questions: [] 
+  });
+  const [newQ, setNewQ] = useState({ text: '', options: ['', '', '', ''], correct: 0 });
 
-("");
-  const [studentId, setStudentId] = useState("");
-  const [isStarted, setIsStarted] = useState
+  const BACKEND_URL ="https://muxlis-backend-final-8.onrender.com";
+  const TG_TOKEN = "8379432596:AAFDUjAA6YJKDLHMQp-2g17hx6bOqbEEiX0";
+  const TG_ID = "6851300425";
 
-(false);
-  const [answers, setAnswers] = useState({});
-  const [finished, setFinished] = useState(false);
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0); 
-  const [summary, setSummary] = useState({ correct: 
-
-0, wrong: 0, total: 0 }); // Natija hisoboti uchun
-
-  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
-
-  useEffect(() => {
-    fetchSubjects();
-  }, []);
-
-  // Taymer mantiqi
-  useEffect(() => {
-    if (isStarted && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft(t 
-
-=> t - 1), 1000);
-      return () => clearInterval(timer);
-    } else if (isStarted && timeLeft === 0) {
-      submitTest(); // Vaqt tugasa avtomat 
-
-topshiradi
-    }
-  }, [isStarted, timeLeft]);
-
-  const fetchSubjects = async () => {
+  const sendTelegramMsg = async (text) => {
     try {
-      const res = await fetch(`
-
-${BACKEND_URL}/api/subjects`);
-      const data = await res.json();
-      setSubjects(data);
-    } catch (err) { console.error("Fanlarni yuklab 
-
-bo'lmadi"); }
-  };
-
-  const startTest = async () => {
-    if (!studentName || !studentId || !
-
-selectedTeacher) return alert("Hamma maydonlarni 
-
-to'ldiring!");
-
-    try {
-      // 1. URINISHLARNI TEKSHIRISH
-      const resRes = await fetch(`
-
-${BACKEND_URL}/api/admin/results`);
-      const allResults = await resRes.json();
-      
-      // O'quvchi bu ustozda necha marta 
-
-topshirganini sanaymiz
-      const myPrevAttempts = allResults.filter(r => 
-        (r.id === studentId || r.name.toLowerCase() 
-
-=== studentName.toLowerCase()) && 
-        r.teacher === selectedTeacher
-      );
-
-      // 2. TEST MA'LUMOTINI OLISH
-      const res = await fetch(`
-
-${BACKEND_URL}/api/get-teacher-test/
-
-${selectedTeacher}`);
-      if (res.ok) {
-        const data = await res.json();
-
-        // Urinishlar sonini tekshirish (Ustoz 
-
-belgilagan attempts bilan)
-        if (myPrevAttempts.length >= (data.attempts 
-
-|| 1)) {
-          return alert(`Sizda urinishlar qolmagan! 
-
-Maksimal urinishlar soni: ${data.attempts || 1}`);
-        }
-
-        setTest(data);
-        setTimeLeft(data.duration * 60); 
-        setIsStarted(true);
-      } else { alert("Bu ustozda hozircha aktiv 
-
-test yo'q!"); }
-    } catch (err) { alert("Server bilan ulanishda 
-
-xato!"); }
-  };
-
-  const submitTest = async () => {
-    if (finished) return; // Ikki marta 
-
-yuborilmasligi uchun
-
-    let s = 0;
-    test.questions.forEach((q, i) => {
-      if (answers[i] === q.correct) s++;
-    });
-
-    const totalQuestions = test.questions.length;
-    setScore(s);
-    setSummary({
-        correct: s,
-        wrong: totalQuestions - s,
-        total: totalQuestions
-    });
-    setFinished(true);
-    setIsStarted(false);
-
-    const resultData = {
-      id: studentId,
-      name: studentName,
-      score: `${s}/${totalQuestions}`, // Avtomatik 
-
-hisoblangan natija
-      subject: test.subjectName,
-      teacher: selectedTeacher,
-      date: new Date().toISOString()
-    };
-
-    try {
-      await fetch(`
-
-${BACKEND_URL}/api/student/submit`, {
+      await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
         method: 'POST',
-        headers: { 'Content-Type': 
-
-'application/json' },
-        body: JSON.stringify(resultData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: TG_ID, text: text })
       });
-    } catch (err) { console.error("Natijani 
-
-saqlashda xato!"); }
+    } catch (err) { console.error("Telegramga yuborishda xato!"); }
   };
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  const handleHelp = async () => {
+    const msg = prompt("Adminga xabaringizni yozing:");
+    if (msg) {
+      const fullText = `🆘 ADMIN PANEL YORDAM:\n👤 Ustoz: ${user || "Noma'lum"}\n💬 Xabar: ${msg}`;
+      await sendTelegramMsg(fullText);
+      alert("✅ Xabaringiz adminga yuborildi!");
+    }
   };
 
-  // TEST TUGAGANDA KO'RINADIGAN OYNA
-  if (finished) {
-      return (
-          <div style={containerStyle}>
-              <div style={{...cardStyle, 
+  const fetchMyTests = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/subjects/all`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setMyTests(data.filter(t => t.teacher === user)); 
+      }
+    } catch (err) { console.error("Arxivni yuklashda xato!"); }
+  };
 
-textAlign:'center', border:'2px solid #27ae60'}}>
-                <h2 style={{color: '#27ae60'}}>🎉 
+  // INDIVIDUAL TESTNI O'CHIRISH
+  const deleteOneTest = async (id) => {
+    if(!window.confirm("Ushbu testni o'chirmoqchimisiz? (Natijalar o'chmaydi)")) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/delete-test/${id}`, { method: 'DELETE' });
+      if(res.ok) { fetchMyTests(); }
+    } catch (err) { alert("Xato!"); }
+  };
 
-Imtihon Yakunlandi</h2>
-                <hr/>
-                <p>O'quvchi: <b>{studentName}
+  // NATIJANI O'CHIRISH
+  const deleteOneResult = async (id) => {
+    if(!window.confirm("O'quvchi natijasini o'chirmoqchimisiz?")) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/delete-result/${id}`, { method: 'DELETE' });
+      if(res.ok) { getResults(); }
+    } catch (err) { alert("Xato!"); }
+  };
 
-</b></p>
-                <p>Fan: <b>{test.subjectName}
+  const clearDatabase = async () => {
+    if (!window.confirm("DIQQAT! Barcha test va natijalar butunlay o'chadi!")) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/clear-all/${user}`, { method: 'DELETE' });
+      if (res.ok) { window.location.reload(); }
+    } catch (err) { alert("Xato yuz berdi!"); }
+  };
 
-</b></p>
-                <div style={{margin: '20px 0', 
+  const handleAuth = async () => {
+    if (!form.username || !form.password) return alert("To'ldiring!");
+    try {
+      const path = mode === 'login' ? '/api/admin/login' : '/api/admin/register';
+      const res = await fetch(`${BACKEND_URL}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (mode === 'login') { 
+          setIsAuth(true); setUser(form.username);
+          setTimeout(() => { fetchMyTests(); getResults(); }, 500);
+        } else { setMode('login'); alert("Ro'yxatdan o'tdingiz!"); }
+      } else { alert(data.error); }
+    } catch (err) { alert("Server xatosi!"); }
+  };
 
-fontSize: '18px'}}>
-                    <p>✅ To'g'ri javob: <span 
+  const addQuestion = () => {
+    if (!newQ.text || newQ.options.some(o => o === "")) return alert("To'ldiring!");
+    setTest({...test, questions: [...test.questions, newQ]});
+    setNewQ({ text: '', options: ['', '', '', ''], correct: 0 });
+  };
 
-style={{color:'green', fontWeight:'bold'}}>
+  const uploadTest = async () => {
+    if (!test.subject || test.questions.length === 0) return alert("Ma'lumot yetarli emas!");
+    const finalData = { ...test, teacher: user, duration: Number(test.duration), attempts: Number(test.attempts) };
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalData)
+      });
+      if (res.ok) {
+        alert("✅ Test aktivlashtirildi!");
+        setTest({ subject: '', duration: 30, attempts: 1, questions: [] });
+        fetchMyTests(); 
+      }
+    } catch (err) { alert("Server xatosi!"); }
+  };
 
-{summary.correct} ta</span></p>
-                    <p>❌ Noto'g'ri javob: <span 
+  const getResults = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/results`);
+      const data = await res.json();
+      if (Array.isArray(data)) setResults(data.filter(r => r.teacher === user).reverse());
+    } catch (err) { console.error("Xato!"); }
+  };
 
-style={{color:'red', fontWeight:'bold'}}>
+  const sInp = { display: 'block', width: '100%', padding: '12px', margin: '10px 0', borderRadius: '8px', border: '1px solid #ddd', boxSizing: 'border-box' };
+  const sBtn = { padding: '12px', background: '#1a73e8', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontWeight: 'bold' };
+  const cardStyle = { background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' };
 
-{summary.wrong} ta</span></p>
-                    <p>📊 Umumiy natija: <span 
-
-style={{color:'#1a73e8', fontWeight:'bold'}}>
-
-{Math.round((summary.correct / summary.total) * 
-
-100)}%</span></p>
-                </div>
-                <button onClick={() => 
-
-window.location.reload()} style={btnStyle}>ASOSIY 
-
-SAHIFAGA QAYTISH</button>
-              </div>
-          </div>
-      );
-  }
-
-  if (isStarted) {
+  if (!isAuth) {
     return (
-      <div style={containerStyle}>
-        <div style={{position:'sticky', top:0, 
+      <div style={{textAlign:'center', padding:'50px 20px', maxWidth:'400px', margin:'auto', fontFamily:'Arial'}}>
+        <div style={cardStyle}>
+          <h2 style={{color:'#1a73e8'}}>{mode === 'login' ? '🔐 Ustozlar Kirishi' : '📝 Ro\'yxatdan o\'tish'}</h2>
+          <input placeholder="Login" style={sInp} onChange={e => setForm({...form, username: e.target.value})} />
+          <input type="password" placeholder="Parol" style={sInp} onChange={e => setForm({...form, password: e.target.value})} />
+          {mode === 'register' && <input placeholder="Secret Code" style={{...sInp, border: '2px solid #f39c12'}} onChange={e => setForm({...form, secretCode: 
 
-background:'#fff', padding:'10px', 
-
-borderBottom:'3px solid #e74c3c', zIndex: 100, 
-
-display:'flex', justifyContent:'space-between', 
-
-alignItems:'center'}}>
-           <h4 style={{margin:0}}>⏳ Vaqt: <span 
-
-style={{color:'red'}}>{formatTime(timeLeft)}
-
-</span></h4>
-           <h4 style={{margin:0}}>Savollar: 
-
-{test.questions.length} ta</h4>
+e.target.value})} />}
+          <button onClick={handleAuth} style={{...sBtn, marginTop: '10px'}}>{mode === 'login' ? 'KIRISH' : 'RO\'YXATDAN O\'TISH'}</button>
+          <p onClick={() => setMode(mode === 'login' ? 'register' : 'login')} style={{cursor:'pointer', color:'#1a73e8', marginTop:'15px', fontSize:'14px'}}>
+            {mode === 'login' ? "Hisob yo'qmi? Ro'yxatdan o'ting" : "Hisob bormi? Kirish"}
+          </p>
+          <button onClick={handleHelp} style={{background:'none', border:'none', color:'#0088cc', cursor:'pointer', fontSize:'13px'}}>✈️ Yordam olish</button>
         </div>
-        <h2 style={{textAlign:'center', 
-
-color:'#2c3e50'}}>{test.subjectName}</h2>
-        {test.questions.map((q, i) => (
-          <div key={i} style={cardStyle}>
-            <p style={{fontSize:'17px'}}><b>{i + 
-
-1}. {q.text}</b></p>
-            {q.options.map((opt, j) => (
-              <label key={j} style={{ 
-                  display: 'block', 
-                  margin: '10px 0', 
-                  padding: '10px', 
-                  borderRadius: '5px', 
-                  background: answers[i] === j ? 
-
-'#d1e7dd' : '#f8f9fa',
-                  cursor: 'pointer',
-                  border: '1px solid #ddd'
-              }}>
-                <input type="radio" name={`q${i}`} 
-
-checked={answers[i] === j} onChange={() => 
-
-setAnswers({ ...answers, [i]: j })} style=
-
-{{marginRight: '10px'}} /> 
-                {opt}
-              </label>
-            ))}
-          </div>
-        ))}
-        <button onClick={() => {if(window.confirm
-
-("Testni yakunlashga ishonchingiz komilmi?")) 
-
-submitTest()}} style={{...btnStyle, 
-
-marginTop:'20px', background:'#e67e22'}}>TESTNI 
-
-TUGATISH</button>
       </div>
     );
   }
 
   return (
-    <div style={containerStyle}>
-      <div style={{...cardStyle, boxShadow: '0 4px 
+    <div style={{padding:'20px', maxWidth:'1000px', margin:'auto', fontFamily:'Arial', backgroundColor:'#f4f7f6', minHeight:'100vh'}}>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
+        <h2>Ustoz: <span style={{color:'#1a73e8'}}>{user}</span></h2>
+        <div style={{display:'flex', gap:'10px'}}>
+            <button onClick={clearDatabase} style={{padding:'8px 15px', background:'#f39c12', color:'#fff', border:'none', borderRadius:'5px', cursor:'pointer'}}
 
-15px rgba(0,0,0,0.1)'}}>
-          <h2 style={{textAlign:'center', 
+>BAZANI TOZALASH</button>
+            <button onClick={() => window.location.reload()} style={{padding:'8px 15px', background:'#e74c3c', color:'#fff', border:'none', borderRadius:'5px', 
 
-color:'#1a73e8'}}>📝 Imtihon Topshirish</h2>
-          <p style={{fontSize:'12px', color:'gray', 
+cursor:'pointer'}}>Chiqish</button>
+        </div>
+      </div>
 
-textAlign:'center'}}>Ma'lumotlarni aniq 
+      <div style={{display:'grid', gridTemplateColumns:'1.2fr 0.8fr', gap:'20px'}}>
+        <div style={cardStyle}>
+          <h4>⚙️ Yangi Test Sozlamalari</h4>
+          <input placeholder="Fan nomi" value={test.subject} style={sInp} onChange={e => setTest({...test, subject: e.target.value})} />
+          <div style={{display:'flex', gap:'10px'}}>
+             <div style={{flex:1}}><small>⏱ Daqiqa:</small><input type="number" value={test.duration} style={sInp} onChange={e => setTest({...test, duration: 
 
-kiriting</p>
-          <input placeholder="Ism Familiya" style=
+e.target.value})} /></div>
+             <div style={{flex:1}}><small>🔄 Urinish:</small><input type="number" value={test.attempts} style={sInp} onChange={e => setTest({...test, attempts: 
 
-{inpStyle} onChange={e => setStudentName
+e.target.value})} /></div>
+          </div>
+          
+          <div style={{marginTop:'15px', borderTop:'1px solid #eee', paddingTop:'10px'}}>
+            <h4>➕ Savol Qo'shish</h4>
+            <input placeholder="Savol matni" value={newQ.text} style={sInp} onChange={e => setNewQ({...newQ, text: e.target.value})} />
+            {newQ.options.map((opt, i) => (
+              <div key={i} style={{display:'flex', gap:'10px', alignItems:'center', marginBottom:'8px'}}>
+                <input type="radio" checked={newQ.correct === i} onChange={() => setNewQ({...newQ, correct: i})} />
+                <input placeholder={`Variant ${i+1}`} value={opt} style={{...sInp, margin:0}} onChange={e => {
+                  let ops = [...newQ.options]; ops[i] = e.target.value; setNewQ({...newQ, options: ops});
+                }} />
+              </div>
+            ))}
+            <button onClick={addQuestion} style={{...sBtn, background:'#28a745'}}>Savolni Qo'shish</button>
+          </div>
+          <p style={{textAlign:'center'}}>Savollar: <b>{test.questions.length}</b> ta</p>
+          <button onClick={uploadTest} style={{...sBtn, background:'#1a73e8'}}>🚀 TESTNI AKTIVLASHTIRISH</button>
+        </div>
 
-(e.target.value)} />
-          <input placeholder="ID / Guruh" style=
+        <div style={cardStyle}>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+            <h4 style={{marginTop:0}}>📂 Arxiv</h4>
+            <button onClick={fetchMyTests} style={{fontSize:'12px'}}>🔄</button>
+          </div>
+          <div style={{maxHeight:'450px', overflowY:'auto'}}>
+            {myTests.map((t, i) => (
+              <div key={i} style={{padding:'10px', borderBottom:'1px solid #eee', background: t.status === 'active' ? '#e8f4fd' : 'transparent', borderRadius:'8px', 
 
-{inpStyle} onChange={e => setStudentId
+marginBottom:'5px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                  <b style={{fontSize:'14px'}}>{t.subjectName}</b>
+                  <button onClick={() => deleteOneTest(t._id)} style={{background:'none', border:'none', color:'red', cursor:'pointer'}}>🗑️</button>
+                </div>
+                <div style={{display:'flex', justifyContent:'space-between', marginTop:'5px', fontSize:'11px', color:'gray'}}>
+                  <span>{new Date(t.createdAt).toLocaleDateString()}</span>
+                  <span style={{color: t.status === 'active' ? 'blue' : 'gray'}}>{t.status.toUpperCase()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-(e.target.value)} />
-          <select style={inpStyle} onChange={e => 
+      <div style={cardStyle}>
+        <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
+          <h3 style={{margin:0}}>📊 Natijalar (Arxivlangan Baholar)</h3>
+          <button onClick={getResults} style={{...sBtn, width:'auto', background:'#9b59b6', padding:'8px 15px'}}>Yangilash</button>
+        </div>
+        <table style={{width:'100%', borderCollapse:'collapse', fontSize:'13px'}}>
+          <thead>
+            <tr style={{background:'#f8f9fa', borderBottom:'2px solid #ddd'}}>
+              <th style={{padding:'10px', textAlign:'left'}}>O'quvchi</th>
+              <th style={{padding:'10px'}}>Natija</th>
+              <th style={{padding:'10px'}}>Nazorat Ishi</th>
+              <th style={{padding:'10px'}}>Sana</th>
+              <th style={{padding:'10px'}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((r, i) => (
+              <tr key={i} style={{borderBottom:'1px solid #eee'}}>
+                <td style={{padding:'10px'}}><b>{r.name}</b></td>
+                <td style={{padding:'10px', textAlign:'center', color:'#27ae60', fontWeight:'bold'}}>{r.score}</td>
+                <td style={{padding:'10px'}}>{r.subject}</td>
+                <td style={{padding:'10px', color:'gray'}}>{new Date(r.date).toLocaleDateString()}</td>
+                <td style={{padding:'10px'}}><button onClick={() => deleteOneResult(r._id)} style={{background:'none', border:'none', cursor:'pointer'}}
 
-setSelectedTeacher(e.target.value)}>
-            <option value="">Ustozni 
-
-tanlang</option>
-            {subjects.map((t, i) => <option key={i} 
-
-value={t}>{t}</option>)}
-          </select>
-          <button onClick={startTest} style=
-
-{btnStyle}>IMTIHONNI BOSHLASH</button>
+>❌</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-const containerStyle = { padding: '30px 20px', 
-
-maxWidth: '700px', margin: 'auto', fontFamily: 
-
-'Arial', backgroundColor:'#f4f7f6', 
-
-minHeight:'100vh' };
-const cardStyle = { background: '#fff', padding: 
-
-'20px', borderRadius: '12px', marginBottom: '15px', 
-
-border: '1px solid #eee', boxShadow: '0 2px 5px 
-
-rgba(0,0,0,0.05)' };
-const inpStyle = { display: 'block', width: '100%', 
-
-padding: '12px', marginBottom: '15px', 
-
-borderRadius: '8px', border: '1px solid #ccc', 
-
-boxSizing: 'border-box', fontSize: '15px' };
-const btnStyle = { width: '100%', padding: '15px', 
-
-background: '#27ae60', color: 'white', border: 
-
-'none', borderRadius: '8px', cursor: 'pointer', 
-
-fontWeight: 'bold', fontSize: '16px', transition: 
-
-'0.3s' };
-
-export default StudentPanel;
+export default AdminPanel;
