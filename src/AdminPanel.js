@@ -13,7 +13,7 @@ const AdminPanel = () => {
   });
   const [newQ, setNewQ] = useState({ text: '', options: ['', '', '', ''], correct: 0 });
 
-  const BACKEND_URL ="https://muxlis-backend-final-8.onrender.com";
+  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
   const TG_TOKEN = "8379432596:AAFDUjAA6YJKDLHMQp-2g17hx6bOqbEEiX0";
   const TG_ID = "6851300425";
 
