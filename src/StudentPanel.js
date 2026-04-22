@@ -15,6 +15,7 @@ const StudentPanel = () => {
 
   const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
+  // Ustozlar ro'yxatini olish
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/subjects`)
       .then(res => res.json())
@@ -22,6 +23,7 @@ const StudentPanel = () => {
       .catch(() => console.log("Xato: Backend uxlab yotibdi"));
   }, []);
 
+  // Taymer mantig'i
   useEffect(() => {
     if (isStarted && timeLeft > 0) {
       timerRef.current = setInterval(() => {
@@ -37,7 +39,6 @@ const StudentPanel = () => {
     if (!studentName || !studentId || !selectedTeacher) return alert("Ma'lumotlarni to'ldiring!");
     
     try {
-      // Avval o'quvchi bu testni topshirganmi yoki yo'qligini tekshirish
       const checkRes = await fetch(`${BACKEND_URL}/api/admin/results`);
       const allResults = await checkRes.json();
       const alreadyDone = allResults.find(r => r.studentId === studentId && r.teacher === selectedTeacher);
@@ -65,14 +66,9 @@ const StudentPanel = () => {
     let s = 0;
 
     test.questions.forEach((q, i) => {
-      // 🔥 MUHIM O'ZGARIŞ: Javobni indeks emas, matn sifatida solishtiramiz
-      // Radio tanlangan bo'lsa indeks keladi, lekin biz uni variant matni bilan solishtiramiz
       const selectedIndex = answers[i]; 
-      const selectedText = q.options[selectedIndex];
       const correctIndex = q.correct;
-      
-      // Agar tanlangan variant indeksi to'g'ri javob indeksiga teng bo'lsa
-      if (selectedIndex !== undefined && selectedIndex === correctIndex) {
+      if (selectedIndex !== undefined && Number(selectedIndex) === Number(correctIndex)) {
         s++;
       }
     });
@@ -86,14 +82,16 @@ const StudentPanel = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentId: studentId, // Backendda 'studentId' deb nomlangan bo'lishi kerak
+          studentId: studentId,
           name: studentName,
-          score: s, // Faqat raqam yuboramiz (masalan: 5)
+          score: s,
           subject: test.subjectName,
           teacher: selectedTeacher
         })
       });
-    } catch (err) { console.log("Natija bazaga saqlanmadi"); }
+    } catch (err) { 
+      console.log("Natija bazaga saqlanmadi"); 
+    }
   };
 
   const formatTime = (seconds) => {
@@ -102,6 +100,7 @@ const StudentPanel = () => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  // Styles
   const containerStyle = { padding: '20px', maxWidth: '600px', margin: 'auto', fontFamily: 'Arial' };
   const cardStyle = { background: '#fff', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #ddd', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
   const inpStyle = { display: 'block', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' };
@@ -114,7 +113,7 @@ const StudentPanel = () => {
           <h1 style={{fontSize: '50px'}}>🏁</h1>
           <h2>Imtihon tugadi!</h2>
           <div style={{fontSize: '24px', margin: '20px 0'}}>
-            Sizning natijangiz: <b style={{color: '#27ae60'}}>{score} / {test.questions.length}</b>
+            Sizning natijangiz: <b style={{color: '#27ae60'}}>{score} / {test?.questions.length}</b>
           </div>
           <p style={{color: '#7f8c8d'}}>Natijangiz saqlandi. Ustozingiz natijani o'chirsagina qayta topshira olasiz.</p>
           <button onClick={() => window.location.reload()} style={{...btnStyle, background: '#3498db', marginTop: '20px'}}>BOSH SAHIFA</button>
@@ -136,7 +135,13 @@ const StudentPanel = () => {
                 <p style={{fontSize: '17px', lineHeight: '1.4'}}><b>{i + 1}. {q.text}</b></p>
                 {q.options.map((opt, j) => (
                 <label key={j} style={{ display: 'flex', alignItems: 'center', margin: '12px 0', cursor: 'pointer', padding: '8px', borderRadius: '5px', background: answers[i] === j ? '#e8f6ed' : 'transparent' }}>
-                    <input type="radio" name={`q${i}`} style={{width: '20px', height: '20px', marginRight: '12px'}} onChange={() => setAnswers({ ...answers, [i]: j })} /> 
+                    <input 
+                        type="radio" 
+                        name={`q${i}`} 
+                        checked={answers[i] === j}
+                        style={{width: '20px', height: '20px', marginRight: '12px'}} 
+                        onChange={() => setAnswers({ ...answers, [i]: j })} 
+                    /> 
                     <span style={{fontSize: '16px'}}>{opt}</span>
                 </label>
                 ))}
