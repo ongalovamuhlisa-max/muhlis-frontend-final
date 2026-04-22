@@ -21,7 +21,7 @@ useState("");
 
 0, wrong: 0, total: 0 }); // Natija hisoboti uchun
 
-  const BACKEND_URL = "http://127.0.0.1:5002";
+  const BACKEND_URL = "https://muxlis-backend-final-8.onrender.com";
 
   useEffect(() => {
     fetchSubjects();
